@@ -1,0 +1,21 @@
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "I",
+  "UP",
+  "W",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["custom_components"]
+force-sort-within-sections = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+

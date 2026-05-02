@@ -1,0 +1,14 @@
+{
+  "domain": "daikin_airbase_hotwater",
+  "name": "Daikin AirBase Hot Water",
+  "codeowners": ["@billgeo"],
+  "config_flow": true,
+  "documentation": "https://github.com/billgeo/ha-daikin-airbase-hotwater",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/billgeo/ha-daikin-airbase-hotwater/issues",
+  "loggers": ["custom_components.daikin_airbase_hotwater"],
+  "requirements": [],
+  "version": "0.1.0"
+}
+

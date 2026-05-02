@@ -1,0 +1,61 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Daikin AirBase Hot Water",
+        "description": "Connect to a Daikin AirBase / BRP15B61 hot water controller.",
+        "data": {
+          "host": "Host",
+          "port": "Port"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to the hot water controller.",
+      "invalid_response": "The device responded, but it does not look like an AirBase hot water controller.",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "This hot water controller is already configured."
+    }
+  },
+  "entity": {
+    "water_heater": {
+      "water_heater": {
+        "name": "Hot water"
+      }
+    },
+    "sensor": {
+      "tank_temperature": {
+        "name": "Tank temperature"
+      },
+      "target_temperature": {
+        "name": "Target temperature"
+      },
+      "outside_temperature": {
+        "name": "Outside temperature"
+      }
+    },
+    "switch": {
+      "boost": {
+        "name": "Boost"
+      },
+      "vacation": {
+        "name": "Vacation"
+      }
+    },
+    "number": {
+      "boil_level": {
+        "name": "Boil level"
+      },
+      "vacation_days": {
+        "name": "Vacation days"
+      }
+    },
+    "select": {
+      "drive_program": {
+        "name": "Drive program"
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+aiohttp
+pre-commit
+pytest
+pytest-asyncio
+ruff
