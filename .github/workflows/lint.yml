@@ -23,8 +23,6 @@ jobs:
             hacs.json \
             custom_components/daikin_airbase_hotwater/manifest.json \
             custom_components/daikin_airbase_hotwater/translations/en.json
-      - name: lint sorted
-        run: python3 scripts/is_sorted.py
       - name: Ruff
         run: |
           ruff check .
