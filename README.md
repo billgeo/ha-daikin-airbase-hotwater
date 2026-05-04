@@ -2,7 +2,7 @@
 
 Home Assistant custom integration for Daikin AirBase / BRP15B61 heat pump hot water controllers.
 
-This is a bridge integration while upstream `pydaikin` and Home Assistant Core support are pending. It talks directly to the local AirBase hot water API at `/skyfi/hotwater/...` over HTTP on port 80 and does not use the standard Daikin air conditioner API.
+I have submitted [a pull request](https://github.com/fredrike/pydaikin/pull/114) to the upstream [pydaikin](https://github.com/fredrike/pydaikin) library with the hope it may end up in the Home Assistant Core [Daikin integration](https://www.home-assistant.io/integrations/daikin/). In the meantime, this integration is available.
 
 ## Features
 
