@@ -1,7 +1,5 @@
 {
   "name": "Daikin AirBase Hot Water",
   "render_readme": true,
-  "domains": ["water_heater", "sensor", "switch", "number", "select"],
   "homeassistant": "2024.6.0"
 }
-

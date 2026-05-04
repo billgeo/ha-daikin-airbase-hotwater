@@ -16,11 +16,15 @@ I have submitted [a pull request](https://github.com/fredrike/pydaikin/pull/114)
 
 Future energy reporting should be added as dedicated `sensor` entities once the device API has been reverse engineered. Cumulative energy sensors should use `state_class: total_increasing` and `kWh` units so Home Assistant can store long-term statistics and use them in the Energy Dashboard.
 
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or sponsored by Daikin. Daikin trademarks are used only for product identification.
+
 ## HACS Installation
 
-1. Add this repository as a custom repository in HACS.
+1. Add `https://github.com/billgeo/ha-daikin-airbase-hotwater` as a custom repository in HACS.
 2. Select category `Integration`.
-3. Install **Daikin AirBase Hot Water**.
+3. Open **Daikin AirBase Hot Water** in HACS and select **Download**.
 4. Restart Home Assistant.
 5. Add the integration from **Settings > Devices & services**.
 
@@ -35,4 +39,3 @@ pytest
 ruff check .
 ruff format --check .
 ```
-

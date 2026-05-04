@@ -1,8 +1,21 @@
 repos:
+  - repo: local
+    hooks:
+      - id: lint-jq
+        name: lint jq
+        entry: jq empty
+        language: system
+        types: [json]
+      - id: lint-sorted
+        name: lint sorted
+        entry: python3 scripts/is_sorted.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.4
     hooks:
       - id: ruff
         args: [--fix]
       - id: ruff-format
-
