@@ -4,16 +4,20 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import time
+from math import fsum
 import re
 from typing import Any
+from urllib.parse import unquote
 
 from aiohttp import ClientError, ClientResponseError, ClientSession
 
 GET_UNIT_INFO = "skyfi/hotwater/get_unit_info"
+GET_DAY_POWER = "skyfi/hotwater/get_day_power"
 SET_CONTROL_INFO = "skyfi/hotwater/set_control_info"
 MAX_VACATION_DAYS = 365
 DRIVE_TIME_SLOT_MINUTES = 30
 DRIVE_TIME_SLOTS_PER_DAY = 24 * 60 // DRIVE_TIME_SLOT_MINUTES
+DAY_POWER_2HOUR_BUCKETS = 12
 
 DRIVE_PROGRAM_LABELS = {
     1: "set_01",
@@ -162,6 +166,36 @@ class AirBaseHotWaterStatus:
         )
 
 
+@dataclass(frozen=True)
+class AirBaseHotWaterDayPower:
+    """Typed current and previous day energy summaries."""
+
+    current_day_2hours: tuple[float, ...]
+    previous_day_2hours: tuple[float, ...]
+    current_day_total: float
+    previous_day_total: float
+
+    @classmethod
+    def from_raw(cls, raw: dict[str, str]) -> AirBaseHotWaterDayPower:
+        """Build typed day power values from the controller response fields."""
+        current_day_2hours = _to_float_series(
+            raw.get("ep_day0_2hours"),
+            "ep_day0_2hours",
+            expected_length=DAY_POWER_2HOUR_BUCKETS,
+        )
+        previous_day_2hours = _to_float_series(
+            raw.get("ep_day1_2hours"),
+            "ep_day1_2hours",
+            expected_length=DAY_POWER_2HOUR_BUCKETS,
+        )
+        return cls(
+            current_day_2hours=current_day_2hours,
+            previous_day_2hours=previous_day_2hours,
+            current_day_total=fsum(current_day_2hours),
+            previous_day_total=fsum(previous_day_2hours),
+        )
+
+
 class DaikinAirBaseHotWaterApi:
     """Async client for the local AirBase hot water API."""
 
@@ -187,6 +221,11 @@ class DaikinAirBaseHotWaterApi:
         """Fetch typed hot water status."""
         raw = await self._get(GET_UNIT_INFO)
         return AirBaseHotWaterStatus.from_raw(raw)
+
+    async def get_day_power(self) -> AirBaseHotWaterDayPower:
+        """Fetch current and previous day energy summaries."""
+        raw = await self._get(GET_DAY_POWER)
+        return AirBaseHotWaterDayPower.from_raw(raw)
 
     async def set_control(self, **kwargs: Any) -> None:
         """Set writable hot water controls."""
@@ -437,6 +476,31 @@ def _to_float(value: str | None, key: str) -> float | None:
     except ValueError as exc:
         raise AirBaseHotWaterResponseError(
             f"{key} must be a float, got {value!r}"
+        ) from exc
+
+
+def _to_float_series(
+    value: str | None,
+    key: str,
+    *,
+    expected_length: int,
+) -> tuple[float, ...]:
+    """Convert a semicolon-separated numeric response value to floats."""
+    if _is_missing(value):
+        raise AirBaseHotWaterResponseError(f"missing {key!r} field in response")
+
+    decoded_value = unquote(value)
+    parts = decoded_value.split(";")
+    if len(parts) != expected_length:
+        raise AirBaseHotWaterResponseError(
+            f"{key} must contain {expected_length} values, got {len(parts)}"
+        )
+
+    try:
+        return tuple(float(part) for part in parts)
+    except ValueError as exc:
+        raise AirBaseHotWaterResponseError(
+            f"{key} must contain float values, got {decoded_value!r}"
         ) from exc
 
 

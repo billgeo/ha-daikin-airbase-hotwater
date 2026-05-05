@@ -7,6 +7,7 @@ from homeassistant.const import Platform
 DOMAIN = "daikin_airbase_hotwater"
 DEFAULT_PORT = 80
 DEFAULT_SCAN_INTERVAL_SECONDS = 30
+ENERGY_SCAN_INTERVAL_SECONDS = 300
 
 CONF_PORT = "port"
 

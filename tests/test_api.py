@@ -23,6 +23,7 @@ sys.modules[SPEC.name] = api_module
 SPEC.loader.exec_module(api_module)
 
 AirBaseHotWaterResponseError = api_module.AirBaseHotWaterResponseError
+AirBaseHotWaterDayPower = api_module.AirBaseHotWaterDayPower
 DaikinAirBaseHotWaterApi = api_module.DaikinAirBaseHotWaterApi
 normalize_control_params = api_module.normalize_control_params
 parse_response = api_module.parse_response
@@ -119,6 +120,83 @@ async def test_get_status_reports_off_mode():
 
     assert status.power is False
     assert status.mode == "off"
+
+
+@pytest.mark.asyncio
+async def test_get_day_power_returns_typed_values():
+    """Test fetching current and previous day energy summaries."""
+    session = FakeSession(
+        "ret=OK,"
+        "ep_day0_2hours=0.0%3b0.1%3b0.0%3b0.0%3b0.0%3b0.0"
+        "%3b0%3b0%3b0%3b0%3b0%3b0,"
+        "ep_day1_2hours=0.0%3b0.1%3b0.0%3b0.0%3b0.0%3b0.0"
+        "%3b0.0%3b0.0%3b0.0%3b1.4%3b0.3%3b0.0"
+    )
+
+    api = DaikinAirBaseHotWaterApi("ip", session)
+    day_power = await api.get_day_power()
+
+    assert day_power.current_day_2hours == (
+        0.0,
+        0.1,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+    )
+    assert day_power.previous_day_2hours == (
+        0.0,
+        0.1,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.4,
+        0.3,
+        0.0,
+    )
+    assert day_power.current_day_total == pytest.approx(0.1)
+    assert day_power.previous_day_total == pytest.approx(1.8)
+    assert session.requests == [
+        {
+            "url": "http://ip/skyfi/hotwater/get_day_power",
+            "params": None,
+            "timeout": 10,
+        }
+    ]
+
+
+def test_day_power_validation():
+    """Test day power response validation."""
+    valid_previous_day = "0;0;0;0;0;0;0;0;0;0;0;0"
+
+    with pytest.raises(AirBaseHotWaterResponseError):
+        AirBaseHotWaterDayPower.from_raw(
+            {
+                "ep_day0_2hours": "0;0",
+                "ep_day1_2hours": valid_previous_day,
+            }
+        )
+
+    with pytest.raises(AirBaseHotWaterResponseError):
+        AirBaseHotWaterDayPower.from_raw(
+            {
+                "ep_day0_2hours": "0;bad;0;0;0;0;0;0;0;0;0;0",
+                "ep_day1_2hours": valid_previous_day,
+            }
+        )
+
+    with pytest.raises(AirBaseHotWaterResponseError):
+        AirBaseHotWaterDayPower.from_raw({"ep_day1_2hours": valid_previous_day})
 
 
 @pytest.mark.asyncio

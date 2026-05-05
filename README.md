@@ -10,11 +10,12 @@ I have submitted [a pull request](https://github.com/fredrike/pydaikin/pull/114)
 - Config flow for host and optional port.
 - Water heater entity for power and operation mode.
 - Statistic-friendly temperature sensors for tank, target, and outside temperature.
+- Current-day energy sensor for Home Assistant long-term statistics and the Energy Dashboard.
 - Boost and vacation switches.
 - Boil level and vacation day number controls.
 - Drive program select control.
 
-Future energy reporting should be added as dedicated `sensor` entities once the device API has been reverse engineered. Cumulative energy sensors should use `state_class: total_increasing` and `kWh` units so Home Assistant can store long-term statistics and use them in the Energy Dashboard.
+The energy sensor uses the controller's current-day 2-hour energy summary, exposed as cumulative kWh with `state_class: total_increasing`.
 
 ## Disclaimer
 
