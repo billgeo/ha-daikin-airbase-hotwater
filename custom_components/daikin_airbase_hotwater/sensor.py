@@ -15,6 +15,7 @@ from homeassistant.const import UnitOfEnergy, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
+from homeassistant.util import dt as dt_util
 
 from .api import AirBaseHotWaterDayPower, AirBaseHotWaterStatus
 from .coordinator import DaikinAirBaseHotWaterConfigEntry
@@ -65,12 +66,12 @@ SENSORS: tuple[AirBaseHotWaterSensorEntityDescription, ...] = (
 ENERGY_SENSORS: tuple[AirBaseHotWaterEnergySensorEntityDescription, ...] = (
     AirBaseHotWaterEnergySensorEntityDescription(
         key="energy_today",
-        translation_key="energy_today",
+        translation_key="energy_period",
         device_class=SensorDeviceClass.ENERGY,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-        state_class=SensorStateClass.TOTAL_INCREASING,
+        state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
-        value_fn=lambda day_power: day_power.current_day_total,
+        value_fn=lambda day_power: day_power.current_period_energy(dt_util.now()),
     ),
 )
 
@@ -103,7 +104,7 @@ class DaikinAirBaseHotWaterSensor(DaikinAirBaseHotWaterEntity, SensorEntity):
         description: AirBaseHotWaterSensorEntityDescription,
     ) -> None:
         """Initialise the sensor."""
-        super().__init__(coordinator, description.translation_key)
+        super().__init__(coordinator, description.translation_key, description.key)
         self.entity_description = description
 
     @property
@@ -126,7 +127,7 @@ class DaikinAirBaseHotWaterEnergySensor(
         description: AirBaseHotWaterEnergySensorEntityDescription,
     ) -> None:
         """Initialise the energy sensor."""
-        super().__init__(coordinator, description.translation_key)
+        super().__init__(coordinator, description.translation_key, description.key)
         self.entity_description = description
 
     @property

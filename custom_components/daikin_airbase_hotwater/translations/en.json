@@ -35,8 +35,8 @@
       "outside_temperature": {
         "name": "Outside temperature"
       },
-      "energy_today": {
-        "name": "Energy today"
+      "energy_period": {
+        "name": "Energy this period"
       }
     },
     "switch": {
