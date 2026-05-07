@@ -10,12 +10,12 @@ I have submitted [a pull request](https://github.com/fredrike/pydaikin/pull/114)
 - Config flow for host and optional port.
 - Water heater entity for power and operation mode.
 - Statistic-friendly temperature sensors for tank, target, and outside temperature.
-- Current-day energy sensor for Home Assistant long-term statistics and the Energy Dashboard.
+- Current-period energy sensor using the controller's 2-hour API buckets.
 - Boost and vacation switches.
 - Boil level and vacation day number controls.
 - Drive program select control.
 
-The energy sensor uses the controller's current-day 2-hour energy summary, exposed as cumulative kWh with `state_class: total_increasing`.
+The energy sensor reports the controller's current-day 2-hour API bucket in kWh with `state_class: measurement`.
 
 ## Disclaimer
 
@@ -36,7 +36,9 @@ python -m venv .venv
 . .venv/bin/activate
 pip install -r requirements-test.txt
 pre-commit install
-pytest
+pytest --cov=custom_components/daikin_airbase_hotwater --cov-report=term-missing --cov-report=xml --cov-fail-under=80
 ruff check .
 ruff format --check .
 ```
+
+CI runs the same coverage gate, prints the missing-lines report, uploads `coverage.xml`, and fails if total coverage drops below 80%.

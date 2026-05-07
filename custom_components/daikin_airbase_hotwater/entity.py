@@ -19,11 +19,13 @@ class DaikinAirBaseHotWaterEntity(CoordinatorEntity[DaikinAirBaseHotWaterCoordin
         self,
         coordinator: DaikinAirBaseHotWaterCoordinator,
         translation_key: str,
+        unique_id_suffix: str | None = None,
     ) -> None:
         """Initialise the entity."""
         super().__init__(coordinator)
         self._attr_translation_key = translation_key
-        self._attr_unique_id = f"{coordinator.config_entry.unique_id}_{translation_key}"
+        suffix = unique_id_suffix or translation_key
+        self._attr_unique_id = f"{coordinator.config_entry.unique_id}_{suffix}"
 
     @property
     def device_info(self) -> DeviceInfo:

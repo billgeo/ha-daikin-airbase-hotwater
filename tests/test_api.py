@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 import importlib.util
 from pathlib import Path
 import sys
@@ -197,6 +198,20 @@ def test_day_power_validation():
 
     with pytest.raises(AirBaseHotWaterResponseError):
         AirBaseHotWaterDayPower.from_raw({"ep_day1_2hours": valid_previous_day})
+
+
+def test_day_power_current_period_energy():
+    """Test current-period energy is read from the matching 2-hour bucket."""
+    day_power = AirBaseHotWaterDayPower.from_raw(
+        {
+            "ep_day0_2hours": "0;1;2;3;4;5;6;7;8;9;10;11",
+            "ep_day1_2hours": "0;0;0;0;0;0;0;0;0;0;0;0",
+        }
+    )
+
+    assert day_power.current_period_energy(datetime(2026, 5, 7, 0, 0)) == 0
+    assert day_power.current_period_energy(datetime(2026, 5, 7, 3, 59)) == 1
+    assert day_power.current_period_energy(datetime(2026, 5, 7, 23, 59)) == 11
 
 
 @pytest.mark.asyncio

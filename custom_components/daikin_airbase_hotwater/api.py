@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import time
+from datetime import datetime, time
 from math import fsum
 import re
 from typing import Any
@@ -18,6 +18,7 @@ MAX_VACATION_DAYS = 365
 DRIVE_TIME_SLOT_MINUTES = 30
 DRIVE_TIME_SLOTS_PER_DAY = 24 * 60 // DRIVE_TIME_SLOT_MINUTES
 DAY_POWER_2HOUR_BUCKETS = 12
+DAY_POWER_PERIOD_MINUTES = 24 * 60 // DAY_POWER_2HOUR_BUCKETS
 
 DRIVE_PROGRAM_LABELS = {
     1: "set_01",
@@ -174,6 +175,11 @@ class AirBaseHotWaterDayPower:
     previous_day_2hours: tuple[float, ...]
     current_day_total: float
     previous_day_total: float
+
+    def current_period_energy(self, at: datetime) -> float:
+        """Return current-day energy for the API period containing the time."""
+        period = (at.hour * 60 + at.minute) // DAY_POWER_PERIOD_MINUTES
+        return self.current_day_2hours[period]
 
     @classmethod
     def from_raw(cls, raw: dict[str, str]) -> AirBaseHotWaterDayPower:
