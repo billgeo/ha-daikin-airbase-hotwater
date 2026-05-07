@@ -40,5 +40,3 @@ pytest --cov=custom_components/daikin_airbase_hotwater --cov-report=term-missing
 ruff check .
 ruff format --check .
 ```
-
-CI runs the same coverage gate, prints the missing-lines report, uploads `coverage.xml`, and fails if total coverage drops below 80%.
