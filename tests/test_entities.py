@@ -32,6 +32,10 @@ def _status(**overrides: Any) -> SimpleNamespace:
         "temp_tank": 52.5,
         "temp_outside": 12.0,
         "drive_program": "program_1",
+        "program_1_start": "21:00",
+        "program_1_end": "07:00",
+        "program_2_start": "11:00",
+        "program_2_end": "14:00",
     }
     defaults.update(overrides)
     return SimpleNamespace(**defaults)
@@ -116,8 +120,16 @@ async def test_switch_number_and_select_entities_write_controls():
     await numbers[0].async_set_native_value(6)
     await numbers[1].async_set_native_value(14)
 
-    assert selects[0].current_option == "program_1"
-    await selects[0].async_select_option("program_1_and_2")
+    assert selects[0].options == [
+        "Fixed 1: Continuous (24 hours)",
+        "Fixed 2: Overnight, 10:00 PM to 7:00 AM (9 hours)",
+        "Fixed 3: Early morning, 12:00 AM to 6:00 AM (6 hours)",
+        "Fixed 4: Daytime, 10:00 AM to 4:00 PM (6 hours)",
+        "Custom 1: 9:00 PM to 7:00 AM (10 hours)",
+        "Custom 1 + 2 : 9:00 PM to 7:00 AM and 11:00 AM to 2:00 PM (13 hours total)",
+    ]
+    assert selects[0].current_option == "Custom 1: 9:00 PM to 7:00 AM (10 hours)"
+    await selects[0].async_select_option(selects[0].options[5])
 
     assert coordinator.control_calls == [
         {"boost": False},
@@ -126,6 +138,18 @@ async def test_switch_number_and_select_entities_write_controls():
         {"vacation_days": 14},
         {"drive_program": "program_1_and_2"},
     ]
+
+
+async def test_select_accepts_existing_internal_drive_program_values():
+    """Test existing internal drive program values still work."""
+    coordinator = FakeCoordinator()
+    entry = SimpleNamespace(runtime_data=coordinator)
+    selects = []
+
+    await select.async_setup_entry(None, entry, selects.extend)
+    await selects[0].async_select_option("set_04")
+
+    assert coordinator.control_calls == [{"drive_program": "set_04"}]
 
 
 async def test_water_heater_reports_values_and_writes_modes():
