@@ -126,7 +126,7 @@ async def test_switch_number_and_select_entities_write_controls():
         "Fixed 3: Early morning, 12:00 AM to 6:00 AM (6 hours)",
         "Fixed 4: Daytime, 10:00 AM to 4:00 PM (6 hours)",
         "Custom 1: 9:00 PM to 7:00 AM (10 hours)",
-        "Custom 1 + 2: 9:00 PM to 7:00 AM and 11:00 AM to 2:00 PM (13 hours total)",
+        "Custom 1 + 2 : 9:00 PM to 7:00 AM and 11:00 AM to 2:00 PM (13 hours total)",
     ]
     assert selects[0].current_option == "Custom 1: 9:00 PM to 7:00 AM (10 hours)"
     await selects[0].async_select_option(selects[0].options[5])
