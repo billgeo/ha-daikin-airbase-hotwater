@@ -13,7 +13,7 @@ I have submitted [a pull request](https://github.com/fredrike/pydaikin/pull/114)
 - Current-period energy sensor using the controller's 2-hour API buckets.
 - Boost and vacation switches.
 - Boil level and vacation day number controls.
-- Drive program select control.
+- Run schedule control with human readable labels.
 
 The energy sensor reports the controller's current-day 2-hour API bucket in kWh with `state_class: measurement`.
 

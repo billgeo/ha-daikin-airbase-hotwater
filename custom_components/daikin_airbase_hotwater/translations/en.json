@@ -57,7 +57,7 @@
     },
     "select": {
       "drive_program": {
-        "name": "Drive program"
+        "name": "Run schedule"
       }
     }
   }
