@@ -9,6 +9,6 @@
   "issue_tracker": "https://github.com/billgeo/ha-daikin-airbase-hotwater/issues",
   "loggers": ["custom_components.daikin_airbase_hotwater"],
   "requirements": [],
-  "version": "0.1.3"
+  "version": "0.1.2"
 }
 
