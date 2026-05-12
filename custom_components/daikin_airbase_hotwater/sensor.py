@@ -11,13 +11,17 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import UnitOfEnergy, UnitOfTemperature
+from homeassistant.const import UnitOfEnergy, UnitOfPower, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.util import dt as dt_util
 
-from .api import AirBaseHotWaterDayPower, AirBaseHotWaterStatus
+from .api import (
+    DAY_POWER_PERIOD_HOURS,
+    AirBaseHotWaterDayPower,
+    AirBaseHotWaterStatus,
+)
 from .coordinator import DaikinAirBaseHotWaterConfigEntry
 from .entity import DaikinAirBaseHotWaterEntity
 
@@ -31,9 +35,10 @@ class AirBaseHotWaterSensorEntityDescription(SensorEntityDescription):
 
 @dataclass(frozen=True, kw_only=True)
 class AirBaseHotWaterEnergySensorEntityDescription(SensorEntityDescription):
-    """Description for a hot water energy sensor."""
+    """Description for a hot water energy data sensor."""
 
     value_fn: Callable[[AirBaseHotWaterDayPower], StateType]
+    extra_attrs_fn: Callable[[AirBaseHotWaterDayPower], dict[str, object]] | None = None
 
 
 SENSORS: tuple[AirBaseHotWaterSensorEntityDescription, ...] = (
@@ -73,7 +78,35 @@ ENERGY_SENSORS: tuple[AirBaseHotWaterEnergySensorEntityDescription, ...] = (
         suggested_display_precision=1,
         value_fn=lambda day_power: day_power.current_period_energy(dt_util.now()),
     ),
+    AirBaseHotWaterEnergySensorEntityDescription(
+        key="average_power",
+        translation_key="average_power",
+        device_class=SensorDeviceClass.POWER,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        value_fn=lambda day_power: day_power.previous_period_average_power_watts(
+            dt_util.now()
+        ),
+        extra_attrs_fn=lambda day_power: _previous_period_attributes(
+            day_power, dt_util.now()
+        ),
+    ),
 )
+
+
+def _previous_period_attributes(
+    day_power: AirBaseHotWaterDayPower,
+    at,
+) -> dict[str, object]:
+    """Return source period attributes for derived average power."""
+    period = day_power.previous_completed_period(at)
+    return {
+        "source_period_start": period.start.isoformat(),
+        "source_period_end": period.end.isoformat(),
+        "source_period_hours": DAY_POWER_PERIOD_HOURS,
+        "source_energy_kwh": period.energy_kwh,
+    }
 
 
 async def async_setup_entry(
@@ -141,3 +174,13 @@ class DaikinAirBaseHotWaterEnergySensor(
         if self.coordinator.energy_data is None:
             return None
         return self.entity_description.value_fn(self.coordinator.energy_data)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, object] | None:
+        """Return extra state attributes."""
+        if (
+            self.coordinator.energy_data is None
+            or self.entity_description.extra_attrs_fn is None
+        ):
+            return None
+        return self.entity_description.extra_attrs_fn(self.coordinator.energy_data)

@@ -37,6 +37,9 @@
       },
       "energy_period": {
         "name": "Energy this period"
+      },
+      "average_power": {
+        "name": "Average power"
       }
     },
     "switch": {

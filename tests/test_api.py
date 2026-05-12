@@ -214,6 +214,30 @@ def test_day_power_current_period_energy():
     assert day_power.current_period_energy(datetime(2026, 5, 7, 23, 59)) == 11
 
 
+def test_day_power_previous_completed_period():
+    """Test previous completed reporting period selection and power conversion."""
+    day_power = AirBaseHotWaterDayPower.from_raw(
+        {
+            "ep_day0_2hours": "0;1;2;3;4;5;6;7;8;9;10;11",
+            "ep_day1_2hours": "12;13;14;15;16;17;18;19;20;21;22;23",
+        }
+    )
+
+    period = day_power.previous_completed_period(datetime(2026, 5, 7, 0, 1))
+    assert period.energy_kwh == 23
+    assert period.start == datetime(2026, 5, 6, 22, 0)
+    assert period.end == datetime(2026, 5, 7, 0, 0)
+    assert period.average_power_watts == pytest.approx(11500)
+
+    period = day_power.previous_completed_period(datetime(2026, 5, 7, 5, 59))
+    assert period.energy_kwh == 1
+    assert period.start == datetime(2026, 5, 7, 2, 0)
+    assert period.end == datetime(2026, 5, 7, 4, 0)
+    assert day_power.previous_period_average_power_watts(
+        datetime(2026, 5, 7, 5, 59)
+    ) == pytest.approx(500)
+
+
 @pytest.mark.asyncio
 async def test_set_control_sends_normalized_params():
     """Test setting multiple writable controls."""
