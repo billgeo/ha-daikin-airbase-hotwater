@@ -50,6 +50,12 @@ class UnitOfEnergy:
     KILO_WATT_HOUR = "kWh"
 
 
+class UnitOfPower:
+    """Minimal power unit constants."""
+
+    WATT = "W"
+
+
 class UnitOfTemperature:
     """Minimal temperature unit constants."""
 
@@ -58,6 +64,7 @@ class UnitOfTemperature:
 
 const.Platform = Platform
 const.UnitOfEnergy = UnitOfEnergy
+const.UnitOfPower = UnitOfPower
 const.UnitOfTemperature = UnitOfTemperature
 
 core = _register_module("homeassistant.core")
@@ -218,6 +225,7 @@ class SensorDeviceClass:
     """Minimal sensor device class constants."""
 
     ENERGY = "energy"
+    POWER = "power"
     TEMPERATURE = "temperature"
 
 

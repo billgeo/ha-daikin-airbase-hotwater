@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from math import fsum
 import re
 from typing import Any
@@ -19,6 +19,7 @@ DRIVE_TIME_SLOT_MINUTES = 30
 DRIVE_TIME_SLOTS_PER_DAY = 24 * 60 // DRIVE_TIME_SLOT_MINUTES
 DAY_POWER_2HOUR_BUCKETS = 12
 DAY_POWER_PERIOD_MINUTES = 24 * 60 // DAY_POWER_2HOUR_BUCKETS
+DAY_POWER_PERIOD_HOURS = DAY_POWER_PERIOD_MINUTES / 60
 
 DRIVE_PROGRAM_LABELS = {
     1: "set_01",
@@ -168,6 +169,20 @@ class AirBaseHotWaterStatus:
 
 
 @dataclass(frozen=True)
+class AirBaseHotWaterEnergyPeriod:
+    """Energy used during one API reporting period."""
+
+    energy_kwh: float
+    start: datetime
+    end: datetime
+
+    @property
+    def average_power_watts(self) -> float:
+        """Return average power for the period."""
+        return self.energy_kwh * 1000 / DAY_POWER_PERIOD_HOURS
+
+
+@dataclass(frozen=True)
 class AirBaseHotWaterDayPower:
     """Typed current and previous day energy summaries."""
 
@@ -180,6 +195,32 @@ class AirBaseHotWaterDayPower:
         """Return current-day energy for the API period containing the time."""
         period = (at.hour * 60 + at.minute) // DAY_POWER_PERIOD_MINUTES
         return self.current_day_2hours[period]
+
+    def previous_completed_period(self, at: datetime) -> AirBaseHotWaterEnergyPeriod:
+        """Return the last completed API reporting period."""
+        day_start = at.replace(hour=0, minute=0, second=0, microsecond=0)
+        current_period = (at.hour * 60 + at.minute) // DAY_POWER_PERIOD_MINUTES
+
+        if current_period == 0:
+            period_end = day_start
+            return AirBaseHotWaterEnergyPeriod(
+                energy_kwh=self.previous_day_2hours[-1],
+                start=period_end - timedelta(minutes=DAY_POWER_PERIOD_MINUTES),
+                end=period_end,
+            )
+
+        period_start = day_start + timedelta(
+            minutes=(current_period - 1) * DAY_POWER_PERIOD_MINUTES
+        )
+        return AirBaseHotWaterEnergyPeriod(
+            energy_kwh=self.current_day_2hours[current_period - 1],
+            start=period_start,
+            end=period_start + timedelta(minutes=DAY_POWER_PERIOD_MINUTES),
+        )
+
+    def previous_period_average_power_watts(self, at: datetime) -> float:
+        """Return average watts for the last completed API reporting period."""
+        return self.previous_completed_period(at).average_power_watts
 
     @classmethod
     def from_raw(cls, raw: dict[str, str]) -> AirBaseHotWaterDayPower:

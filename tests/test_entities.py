@@ -91,13 +91,58 @@ async def test_sensor_entities_report_status_and_period_energy(monkeypatch):
         "target_temperature",
         "outside_temperature",
         "energy_period",
+        "average_power",
     ]
-    assert [entity.native_value for entity in entities] == [52.5, 60.0, 12.0, 2.0]
+    assert [entity.native_value for entity in entities] == [
+        52.5,
+        60.0,
+        12.0,
+        2.0,
+        500.0,
+    ]
+    assert entities[-1].extra_state_attributes == {
+        "source_period_start": "2026-05-07T02:00:00",
+        "source_period_end": "2026-05-07T04:00:00",
+        "source_period_hours": 2,
+        "source_energy_kwh": 1.0,
+    }
+    assert entities[-2].extra_state_attributes is None
     assert entities[-1].available is True
 
     coordinator.energy_data = None
+    assert entities[-2].available is False
+    assert entities[-2].native_value is None
     assert entities[-1].available is False
     assert entities[-1].native_value is None
+    assert entities[-1].extra_state_attributes is None
+
+
+async def test_average_power_uses_previous_day_at_midnight(monkeypatch):
+    """Test average power uses yesterday's final bucket after midnight."""
+    monkeypatch.setattr(
+        sensor.dt_util,
+        "now",
+        lambda: datetime(2026, 5, 7, 0, 30),
+    )
+    day_power = AirBaseHotWaterDayPower.from_raw(
+        {
+            "ep_day0_2hours": "0;1;2;3;4;5;6;7;8;9;10;11",
+            "ep_day1_2hours": "12;13;14;15;16;17;18;19;20;21;22;23",
+        }
+    )
+    coordinator = FakeCoordinator(energy_data=day_power)
+    power_sensor = sensor.DaikinAirBaseHotWaterEnergySensor(
+        coordinator,
+        sensor.ENERGY_SENSORS[1],
+    )
+
+    assert power_sensor.native_value == 11500.0
+    assert power_sensor.extra_state_attributes == {
+        "source_period_start": "2026-05-06T22:00:00",
+        "source_period_end": "2026-05-07T00:00:00",
+        "source_period_hours": 2,
+        "source_energy_kwh": 23.0,
+    }
 
 
 async def test_switch_number_and_select_entities_write_controls():

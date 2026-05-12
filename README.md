@@ -11,11 +11,13 @@ I have submitted [a pull request](https://github.com/fredrike/pydaikin/pull/114)
 - Water heater entity for power and operation mode.
 - Statistic-friendly temperature sensors for tank, target, and outside temperature.
 - Current-period energy sensor using the controller's 2-hour API buckets.
+- Average power sensor derived from the last completed 2-hour energy bucket.
 - Boost and vacation switches.
 - Boil level and vacation day number controls.
 - Run schedule control with human readable labels.
 
 The energy sensor reports the controller's current-day 2-hour API bucket in kWh with `state_class: measurement`.
+The average power sensor reports watts derived from the last completed 2-hour bucket, so it is stable but delayed by one API period.
 
 ## Disclaimer
 
